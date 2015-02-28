@@ -1,0 +1,186 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Untitled Document</title>
+</head>
+<body>
+<!--- ONLY LET HOME ADDRESS IN --->
+<cfif cgi.REMOTE_ADDR neq "66.152.121.48">
+	<cfabort>
+</cfif>
+
+<!--- Start Dice Loop --->
+<cfquery name="importdice" datasource="dicemasters">
+	select * from importdice
+
+    <!--- Die Side Table --->
+    <cfquery name="checkdieside" datasource="dicemasters">
+    	select dieside_id from dieside where die_id = #ndie_id# and sidenum = #sidenum#
+    </cfquery>
+    <cfif checkdieside.recordcount gt 0>
+    	<cfset ndieside_id = checkdieside.dieside_id>
+    <cfelse>
+</cfquery>
+<cfloop query="importdice">
+	<!--- Sets Table --->
+    <cfquery name="checkset" datasource="dicemasters">
+    	select set_id from sets where abbr = '#set#'
+    </cfquery>
+    <cfif checkset.recordcount gt 0>
+    	<cfset nset_id = checkset.set_id>
+    <cfelse>
+    	<cfquery name="insertset" datasource="dicemasters" result="result">
+        	insert into sets (abbr) values ('#set#')
+        </cfquery>
+        <cfset nset_id = result.generatedkey>
+        inserted set #nset_id#<br>
+    </cfif>
+
+    <!--- Die Table --->
+    <cfquery name="checkdie" datasource="dicemasters">
+    	select die_id from die where name ='#name#' and set_id = #nset_id#
+    </cfquery>
+    <cfif checkdie.recordcount gt 0>
+    	<cfset ndie_id = checkdie.die_id>
+    <cfelse>
+    	<cfquery name="insertdie" datasource="dicemasters" result="result">
+        	insert into die (name,set_id) values ('#name#',#nset_id#)
+        </cfquery>
+        <cfset ndie_id = result.generatedkey>
+        inserted die #ndie_id#<br>
+    </cfif>
+
+    <!--- Energy Type Table --->
+    <cfquery name="checkenergytype" datasource="dicemasters">
+    	select energytype_id from energytype where name ='#energytype#'
+    </cfquery>
+    <cfif checkenergytype.recordcount gt 0>
+    	<cfset nenergytype_id = checkenergytype.energytype_id>
+    <cfelse>
+    	<cfquery name="insertenergytype" datasource="dicemasters" result="result">
+        	insert into energytype (name) values ('#energytype#')
+        </cfquery>
+        <cfset nenergytype_id = result.generatedkey>
+        inserted energytype #nenergytype_id#<br>
+    </cfif>
+    	<cfquery name="insertdieside" datasource="dicemasters" result="result">
+        	insert into dieside (sidenum,sidetype,die_id,energytype_id,energyval,burst,fielding,attack,defense)
+            values (
+            	<cfqueryparam cfsqltype="cf_sql_integer" value="#sidenum#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#sidetype#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#ndie_id#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#nenergytype_id#" null="#yesNoFormat(NOT len(trim(nenergytype_id)))#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#energyval#" null="#yesNoFormat(NOT len(trim(energyval)))#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#bursts#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#fielding#" null="#yesNoFormat(NOT len(trim(fielding)))#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#attack#" null="#yesNoFormat(NOT len(trim(attack)))#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#defense#" null="#yesNoFormat(NOT len(trim(defense)))#">)
+        </cfquery>
+        <cfset ndieside_id = result.generatedkey>
+        inserted dieside #ndieside_id#<br>
+    </cfif>
+</cfloop>
+<!--- End Dice Loop --->
+
+<!--- Start Card Loop --->
+<cfquery name="importcards" datasource="dicemasters">
+	select * from importcard2
+</cfquery>
+<cfloop query="importcards">
+	<!--- Sets Table --->
+    <cfquery name="checkset" datasource="dicemasters">
+    	select set_id from sets where abbr = '#set#'
+    </cfquery>
+    <cfif checkset.recordcount gt 0>
+    	<cfset nset_id = checkset.set_id>
+    <cfelse>
+    	<cfquery name="insertset" datasource="dicemasters" result="result">
+        	insert into sets (abbr) values ('#set#')
+        </cfquery>
+        <cfset nset_id = result.generatedkey>
+        inserted set #nset_id#<br>
+    </cfif>
+
+    <!--- Die Table --->
+    <cfquery name="checkdie" datasource="dicemasters">
+    	select die_id from die where name ='#title#' and set_id = #nset_id#
+    </cfquery>
+    <cfif checkdie.recordcount gt 0>
+    	<cfset ndie_id = checkdie.die_id>
+    <cfelse>
+    	<cfquery name="insertdie" datasource="dicemasters" result="result">
+        	insert into die (name,set_id) values ('#title#',#nset_id#)
+        </cfquery>
+        <cfset ndie_id = result.generatedkey>
+        inserted die #ndie_id#<br>
+    </cfif>
+
+    <!--- Energy Type Table --->
+    <cfquery name="checkenergytype" datasource="dicemasters">
+    	select energytype_id from energytype where name ='#energytype#'
+    </cfquery>
+    <cfif checkenergytype.recordcount gt 0>
+    	<cfset nenergytype_id = checkenergytype.energytype_id>
+    <cfelse>
+    	<cfquery name="insertenergytype" datasource="dicemasters" result="result">
+        	insert into energytype (name) values ('#energytype#')
+        </cfquery>
+        <cfset nenergytype_id = result.generatedkey>
+        inserted energytype #nenergytype_id#<br>
+    </cfif>
+
+    <!--- Card Table --->
+    <cfquery name="checkcard" datasource="dicemasters">
+    	select card_id from card where die_id='#ndie_id#' and subtitle = '#subtitle#'
+    </cfquery>
+	<cfif checkcard.recordcount gt 0>
+    	<cfset ncard_id = checkcard.card_id>
+    <cfelse>
+    	<cfquery name="insertcard" datasource="dicemasters" result="result">
+        	insert into card
+            	(die_id,
+                subtitle,
+                maxdie,
+                energytype_id,
+                cost,
+                text,
+                burst1,
+                burst2,
+                special,
+                global,
+                number,
+                set_id,
+                affiliation,
+                rarity)
+            values
+            	(<cfqueryparam cfsqltype="cf_sql_integer" value="#ndie_id#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#subtitle#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#maxdie#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#nenergytype_id#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#cost#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#text#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#burst1#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#burst2#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#special#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#global#">,
+            	<cfqueryparam cfsqltype="cf_sql_integer" value="#number#">,
+                <cfqueryparam cfsqltype="cf_sql_integer" value="#nset_id#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#affiliation#">,
+                <cfqueryparam cfsqltype="cf_sql_varchar" value="#rarity#">)
+        </cfquery>
+        <cfset ncard_id = result.generatedkey>
+        inserted card <cfoutput>#ncard_id#</cfoutput><br>
+    </cfif>
+
+
+
+</cfloop>
+<!--- End Card Loop --->
+</body>
+</html>
+
+
+
+
