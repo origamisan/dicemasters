@@ -12,4 +12,7 @@ class PagesController extends Controller {
         return view('pages.about')->with('name',$name);
     }
 
+    public function index(){
+        return view('pages.index');
+    }
 }

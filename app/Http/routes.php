@@ -12,5 +12,5 @@
 */
 
 Route::get('about', 'PagesController@about');
-
+Route::get('/','PagesController@index');
 Route::get('normalize','AdminController@norm');
